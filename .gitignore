@@ -3,3 +3,6 @@ data/FDDB/*
 eval_tools/
 weights/*
 *.pyc
+__pycache__/*
+*/__pycache__/*
+output/*
