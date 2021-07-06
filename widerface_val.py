@@ -38,6 +38,7 @@ parser.add_argument('--cuda', default=True, type=bool,
                     help='Use cuda to train model')
 parser.add_argument('--widerface_root', default=WIDERFace_ROOT, help='Location of WIDERFACE root directory')
 args = parser.parse_args()
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 if args.cuda and torch.cuda.is_available():
     torch.set_default_tensor_type('torch.cuda.FloatTensor')
@@ -58,12 +59,14 @@ def detect_face(image, shrink):
 
     x = torch.from_numpy(x).permute(2, 0, 1)
     x = x.unsqueeze(0)
-    x = Variable(x.cuda(), volatile=True)
-
-    #net.priorbox = PriorBoxLayer(width,height)
-    y = net(x)
-    detections = y.data
-    scale = torch.Tensor([width, height, width, height])
+    with torch.no_grad():
+            x = Variable(x.to(device))
+            #net.priorbox = PriorBoxLayer(width,height)
+            y = net(x)
+            detections = y.data
+            scale = torch.Tensor([width, height, width, height])
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
 
     boxes=[]
     scores = []
@@ -226,8 +229,8 @@ def write_to_txt(f, det , event, im_name):
 cfg = widerface_640
 num_classes = len(WIDERFace_CLASSES) + 1 # +1 background
 net = build_ssd('test', cfg['min_dim'], num_classes) # initialize SSD
-net.load_state_dict(torch.load(args.trained_model))
-net.cuda()
+net.load_state_dict(torch.load(args.trained_model, map_location='cpu'))
+net.to(device)
 net.eval()
 print('Finished loading model!')
 

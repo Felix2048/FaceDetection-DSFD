@@ -17,12 +17,12 @@ import torch.utils.data as data
 author: swordli
 '''
 #from .config import HOME
-sys.path.append('/f/home/jianli/code/s3fd.180716/')
+# sys.path.append('/f/home/jianli/code/s3fd.180716/')
 plt.switch_backend('agg')
 
 WIDERFace_CLASSES = ['face']  # always index 0
 # note: if you used our download scripts, this should be right
-WIDERFace_ROOT = '/data2/lijian/widerface/data/'
+WIDERFace_ROOT = 'data/WIDER'
 
 
 class WIDERFaceAnnotationTransform(object):
