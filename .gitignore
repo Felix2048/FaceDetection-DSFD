@@ -1,0 +1,5 @@
+data/WIDER/*
+data/FDDB/*
+eval_tools/
+weights/*
+*.pyc
