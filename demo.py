@@ -30,17 +30,20 @@ from widerface_val import bbox_vote
 plt.switch_backend('agg')
 
 parser = argparse.ArgumentParser(description='DSFD:Dual Shot Face Detector')
+parser.add_argument('--img_root', type=str, default='data/example/worlds-largest-selfie.jpg', help='Location of test images directory')
+parser.add_argument('--img_filename', type=str, default='worlds-largest-selfie.jpg', help='Filename of the output image')
 parser.add_argument('--trained_model', default='weights/WIDERFace_DSFD_RES152.pth',
                     type=str, help='Trained state_dict file path to open')
-parser.add_argument('--save_folder', default='eval_tools/', type=str,
+parser.add_argument('--save_folder', default='output/', type=str,
                     help='Dir to save results')
 parser.add_argument('--visual_threshold', default=0.1, type=float,
                     help='Final confidence threshold')
 parser.add_argument('--cuda', default=True, type=bool,
                     help='Use cuda to train model')
-parser.add_argument('--img_root', default='./data/worlds-largest-selfie.jpg', help='Location of test images directory')
 parser.add_argument('--widerface_root', default=WIDERFace_ROOT, help='Location of WIDERFACE root directory')
 args = parser.parse_args()
+
+print(args)
 
 if args.cuda and torch.cuda.is_available():
     torch.set_default_tensor_type('torch.cuda.FloatTensor')
@@ -184,7 +187,7 @@ def test_oneimage():
  
     # load data
     path = args.img_root
-    img_id = 'face'
+    img_id = args.img_filename
     img = cv2.imread(path, cv2.IMREAD_COLOR)
 
     max_im_shrink = ( (2000.0*2000.0) / (img.shape[0] * img.shape[1])) ** 0.5
