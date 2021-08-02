@@ -1,105 +1,105 @@
+## [DSFD: Dual Shot Face Detector](https://arxiv.org/abs/1810.10220)
 
-<img src="imgs/DSFD_logo.PNG" title="Logo" width="300" /> 
-
-## Update
-
-* 2019.04: Release pytorch-version DSFD inference code.
-* 2019.03: DSFD is accepted by CVPR2019.
-* 2018.10: Our DSFD ranks No.1 on [WIDER FACE](http://mmlab.ie.cuhk.edu.hk/projects/WIDERFace/WiderFace_Results.html) and [FDDB](http://vis-www.cs.umass.edu/fddb/results.html)
+By [Jian Li](https://lijiannuist.github.io/), [Yabiao Wang](https://github.com/ChaunceyWang), [Changan Wang](https://github.com/HiKapok), [Ying Tai](https://tyshiwo.github.io/), [Jianjun Qian](http://www.escience.cn/people/JianjunQian/index.html), [Jian Yang](https://scholar.google.com/citations?user=6CIDtZQAAAAJ&hl=zh-CN&oi=sra), Chengjie Wang, Jilin Li, Feiyue Huang.
 
 
-## Introduction
-<p align='center'>
-  <img src='./imgs/dsfd_video.gif' width=1000'/>
-</p>
+### Simple test on image
 
-In this repo, we propose a novel face detection network, named DSFD, with superior performance over the state-of-the-art face detectors. You can use the code to evaluate our DSFD for face detection. 
+```python
+import cv2
+import torch
+from face_ssd_infer import SSD
+from utils import vis_detections
 
-For more details, please refer to our paper [DSFD: Dual Shot Face Detector](https://arxiv.org/abs/1810.10220)! or poster [slide](./imgs/DSFD_CVPR2019_poster.pdf)!
 
-<p align='center'>
-<img src='./imgs/DSFD_framework.PNG' alt='DSFD Framework' width='1000px'>
-</p>
+device = torch.device("cpu")
+conf_thresh = 0.3
+target_size = (800, 800)
 
-Our DSFD face detector achieves state-of-the-art performance on [WIDER FACE](http://mmlab.ie.cuhk.edu.hk/projects/WIDERFace/WiderFace_Results.html) and [FDDB](http://vis-www.cs.umass.edu/fddb/results.html) benchmark.
 
-### WIDER FACE
-<p align='center'>
-<img src='./imgs/DSFD_widerface.PNG' alt='DSFD Widerface Performance' width='1000px'>
-</p>
+net = SSD("test")
+net.load_state_dict(torch.load('weights/WIDERFace_DSFD_RES152.pth'))
+net.to(device).eval();
 
-### FDDB
-<p align='center'>
-<img src='./imgs/DSFD_fddb.PNG' alt='DSFD FDDB Performance' width='1000px'>
-</p>
+img_path = './imgs/11_Meeting_Meeting_11_Meeting_Meeting_11_304.jpg'
 
-## Requirements
-- Torch == 0.3.1
-- Torchvision == 0.2.1
-- Python == 3.6
-- NVIDIA GPU == Tesla P40 
-- Linux CUDA CuDNN
+img = cv2.imread(img_path, cv2.IMREAD_COLOR)
+detections = net.detect_on_image(img, target_size, device, is_pad=False, keep_thresh=conf_thresh)
+vis_detections(img, detections, conf_thresh, show_text=False)
 
-## Getting Started
+```
+<img src="https://raw.githubusercontent.com/vlad3996/FaceDetection-DSFD/master/imgs/out.png"/>
 
-### Installation
-Clone the github repository. We will call the cloned directory as `$DSFD_ROOT`.
+
+### Requirements
+
+- Torch >= 1.0.0
+- Torchvision >= 0.2.1
+- Numpy >=  1.14.2
+- opencv-python >= 4.0
+- Matplotlib
+
+
+### Getting Started
+
 ```bash
-git clone xxxxxx/FaceDetection-DSFD.git
+git clone https://github.com/vlad3996/FaceDetection-DSFD.git
 cd FaceDetection-DSFD
-export CUDA_VISIBLE_DEVICES=0
+pip install -r requirements.txt
+
+python demo.py
+
 ```
 
 
-### Evaluation
-1. Download the images of [WIDER FACE](http://mmlab.ie.cuhk.edu.hk/projects/WIDERFace/) and [FDDB](https://drive.google.com/open?id=17t4WULUDgZgiSy5kpCax4aooyPaz3GQH) to `$DSFD_ROOT/data/`.
+### ONNX export 
 
-2. Download our DSFD model [微云](https://share.weiyun.com/567x0xQ) [google drive](https://drive.google.com/file/d/1WeXlNYsM6dMP3xQQELI-4gxhwKUQxc3-/view?usp=sharing) trained on WIDER FACE training set to `$DSFD_ROOT/weights/`.
+``` bash
+pip install onnx
+```
+```python
 
-  
-3. Check out `./demo.py` on how to detect faces using the DSFD model and how to plot detection results.
-```
-python demo.py [--trained_model [TRAINED_MODEL]] [--img_root  [IMG_ROOT]] 
-               [--save_folder [SAVE_FOLDER]] [--visual_threshold [VISUAL_THRESHOLD]] 
-    --trained_model      Path to the saved model
-    --img_root           Path of test images
-    --save_folder        Path of output detection resutls
-    --visual_threshold   Confidence thresh
-```
+import os
+import torch
+from face_ssd_infer import SSD
 
-4. Evaluate the trained model via `./widerface_val.py` on WIDER FACE.
-```
-python widerface_val.py [--trained_model [TRAINED_MODEL]] [--save_folder [SAVE_FOLDER]] 
-                         [--widerface_root [WIDERFACE_ROOT]]
-    --trained_model      Path to the saved model
-    --save_folder        Path of output widerface resutls
-    --widerface_root     Path of widerface dataset
-```
+target_size = (800, 800)
 
-5. Download the [eval_tool](http://mmlab.ie.cuhk.edu.hk/projects/WIDERFace/support/eval_script/eval_tools.zip) to show the WIDERFACE performance.
+net = SSD("onnx_export")
+net.load_state_dict(torch.load('weights/WIDERFace_DSFD_RES152.pth'))
+net.eval();
 
-6. Evaluate the trained model via `./fddb_test.py` on FDDB.
-```
-python widerface_test.py [--trained_model [TRAINED_MODEL]] [--split_dir [SPLIT_DIR]] 
-                         [--data_dir [DATA_DIR]] [--det_dir [DET_DIR]]
-    --trained_model      Path of the saved model
-    --split_dir          Path of fddb folds
-    --data_dir           Path of fddb all images
-    --det_dir            Path to save fddb results
+
+model_path = "weights/detector.onnx"
+if os.path.isfile(model_path):
+    os.remove(model_path)
+torch.onnx.export(net, torch.zeros((1,3,*target_size)), model_path,verbose=True, input_names=["Input"], output_names=["Output"]);
+
 ```
 
-7. Download the [evaluation](http://vis-www.cs.umass.edu/fddb/evaluation.tgz) to show the FDDB performance.
-8. Lightweight DSFD is [here](https://github.com/lijiannuist/lightDSFD).
 
-## Qualitative Results
-<p align='center'>
-  <img src='./imgs/DSFD_demo1.PNG' width='1000'/>
-</p>
+### Caffe 2 inference 
 
-<p align='center'>
-  <img src='./imgs/DSFD_demo2.PNG' width='1000'/>
-</p>
+(obtain boxes and confidences)
 
+
+```python
+import numpy as np
+import onnx
+import caffe2
+import caffe2.python.onnx.backend
+
+model_path = "weights/detector.onnx"
+onnx_model = onnx.load(model_path)
+
+W = {
+    onnx_model.graph.input[0].name: np.zeros((1,3,800,800)).astype(np.float32)
+}
+
+model = caffe2.python.onnx.backend.prepare(onnx_model)
+out = model.run(W)
+out[0]
+```
 
 ### Citation
 If you find DSFD useful in your research, please consider citing: 
@@ -110,9 +110,4 @@ If you find DSFD useful in your research, please consider citing:
   booktitle={Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition},
   year={2019}
 }
-```
-## Contact
-For any question, please file an issue or contact
-```
-Jian Li: swordli@tencent.com
 ```
